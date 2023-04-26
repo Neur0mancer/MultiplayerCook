@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class KitchenObject : MonoBehaviour
 {
-    [SerializeField] private KitchenObjectsSO kitchenObjectsSO;
+    [SerializeField] private KitchenObjectSO kitchenObjectSO;
     private IKitchenObjectParent kitchenObjectParent;
-    public KitchenObjectsSO GetKitchenObjectsSO() { 
-        return kitchenObjectsSO; 
+    public KitchenObjectSO GetKitchenObjectsSO() { 
+        return kitchenObjectSO; 
     }
     public void SetKitchenObjectParent(IKitchenObjectParent kitchenObjectParent) { //Moving objects between counters
         if( this.kitchenObjectParent != null) {                    //Clear old counter
@@ -23,5 +23,15 @@ public class KitchenObject : MonoBehaviour
     }
     public IKitchenObjectParent GetKitchenObjectParent() { 
         return kitchenObjectParent; 
+    }
+    public void DestroySelf() {
+        kitchenObjectParent.CLearKitchenObject();
+        Destroy(gameObject);
+    }
+    public static KitchenObject SpawnKinchenObject(KitchenObjectSO kitchenObjectSO, IKitchenObjectParent kitchenObjectParent) {
+        Transform kitchenObjectTransform = Instantiate(kitchenObjectSO.prefab);
+        KitchenObject kitchenObject = kitchenObjectTransform.GetComponent<KitchenObject>();
+        kitchenObject.SetKitchenObjectParent(kitchenObjectParent);
+        return kitchenObject;
     }
 }
