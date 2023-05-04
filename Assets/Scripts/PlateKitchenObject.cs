@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class PlateKitchenObject : KitchenObject {
-    public event EventHandler<OnIngridientAddedEventArgs> OnIgridientAdded;
-    public class OnIngridientAddedEventArgs : EventArgs {
+    public event EventHandler<OnIngredientAddedEventArgs> OnIgridientAdded;
+    public class OnIngredientAddedEventArgs : EventArgs {
         public KitchenObjectSO kitchenObjectSO;
     }
 
@@ -25,7 +25,7 @@ public class PlateKitchenObject : KitchenObject {
             return false;
         } else {
             kitchenObjectSOList.Add(kitchenObjectSO);
-            OnIgridientAdded?.Invoke(this, new OnIngridientAddedEventArgs {
+            OnIgridientAdded?.Invoke(this, new OnIngredientAddedEventArgs {
                 kitchenObjectSO = kitchenObjectSO
             }); 
             return true;

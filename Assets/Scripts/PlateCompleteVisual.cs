@@ -21,7 +21,7 @@ public class PlateCompleteVisual : MonoBehaviour
         }
     }
 
-    private void PlateKitchenObject_OnIgridientAdded(object sender, PlateKitchenObject.OnIngridientAddedEventArgs e) {
+    private void PlateKitchenObject_OnIgridientAdded(object sender, PlateKitchenObject.OnIngredientAddedEventArgs e) {
         foreach (KitchenObjectSO_GameObject kitchenObjectSO_GameObject in kitchenObjectSO_GameObjectsList) {
             if(kitchenObjectSO_GameObject.kitchenObjectSO == e.kitchenObjectSO) {
                 kitchenObjectSO_GameObject.gameObject.SetActive(true);

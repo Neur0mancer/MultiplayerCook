@@ -15,7 +15,7 @@ public class PlateIconsUI : MonoBehaviour
         plateKitchenObject.OnIgridientAdded += PlateKitchenObject_OnIgridientAdded; 
             }
 
-    private void PlateKitchenObject_OnIgridientAdded(object sender, PlateKitchenObject.OnIngridientAddedEventArgs e) {
+    private void PlateKitchenObject_OnIgridientAdded(object sender, PlateKitchenObject.OnIngredientAddedEventArgs e) {
         UpdateVisual();
     }
 
