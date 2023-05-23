@@ -36,26 +36,14 @@ public class DeliveryManager : MonoBehaviour{
     }
 
     public void DeliverRecipe(PlateKitchenObject plateKitchenObject) {
-        for ( int i = 0; i < waitingRecipesMax; i++) {
+        for (int i = 0; i < waitingRecipeSOList.Count; i++) {
             RecipeSO waitingRecipeSO = waitingRecipeSOList[i];
-            if(waitingRecipeSO.kitchenObjectSOList.Count == plateKitchenObject.GetKitchenObjectSOList().Count) {
-                //Has the same number of ingridients
-                bool plateContentsMatchRecipe = true;
-                foreach (KitchenObjectSO recipeKitchenObjectSO in waitingRecipeSO.kitchenObjectSOList) {
-                    //Cycle all ingredieants in recipe
-                    bool ingredientFound = false;
-                    foreach (KitchenObjectSO platekitchenObjectSO in plateKitchenObject.GetKitchenObjectSOList()) {
-                        //Cycle all ingedients on a plate
-                        if(platekitchenObjectSO == recipeKitchenObjectSO) {
-                            ingredientFound = true;
-                            break;
-                        }
-                    }
-                    if(!ingredientFound) {
-                        //Recipe ingedient was not found on plate
-                        plateContentsMatchRecipe = false;
-                    }
-                }
+            if (waitingRecipeSO.kitchenObjectSOList.Count != plateKitchenObject.GetKitchenObjectSOList().Count) {
+                //Does not have the same number of ingridients
+                continue;
+            }
+                bool plateContentsMatchRecipe = DoPlateContetntsMatchRecipe(plateKitchenObject, waitingRecipeSO);
+                
                 if (plateContentsMatchRecipe) {
                     //Correct recipe delivered
                     successfulRecipeAmount++;
@@ -64,13 +52,32 @@ public class DeliveryManager : MonoBehaviour{
                     OnRecipeSuccess?.Invoke(this, EventArgs.Empty);
                     return;
                 }
-            }
+            
             
         }
         //No matches
         OnRecipeFailed?.Invoke(this, EventArgs.Empty);
         Debug.Log("Not correct recipe");
 
+    }
+    private bool DoPlateContetntsMatchRecipe(PlateKitchenObject plateKitchenObject, RecipeSO recipeSO) {
+        foreach (KitchenObjectSO recipeKitchenObjectSO in recipeSO.kitchenObjectSOList) {
+            bool ingridientFound = DoesPlateHaveIngridient(plateKitchenObject, recipeKitchenObjectSO);
+            if(!ingridientFound) {
+                return false;
+            }
+        }
+        return true;
+
+        }
+    private bool DoesPlateHaveIngridient(PlateKitchenObject plateKitchenObject, KitchenObjectSO ingridientKitchenObjectSO) {
+        foreach( KitchenObjectSO plateKitchenObjectSO in plateKitchenObject.GetKitchenObjectSOList()) {
+            //Check all ingridients on plate
+            if(plateKitchenObjectSO == ingridientKitchenObjectSO) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public List<RecipeSO> GetWaitingRecipeSOList() {
