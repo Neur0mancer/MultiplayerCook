@@ -26,8 +26,8 @@ public class GameManager : MonoBehaviour{
     private bool isGamePaused = false;
 
     private void Awake() {
-        state = State.WaitingToStart;
         Instance = this;
+        state = State.WaitingToStart;        
     }
 
     private void Start() {

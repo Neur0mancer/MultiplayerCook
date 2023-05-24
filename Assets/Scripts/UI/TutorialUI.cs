@@ -20,7 +20,7 @@ public class TutorialUI : MonoBehaviour
         GameInput.Instance.OnBindingRebind += GameInput_OnBindingRebind;
         GameManager.Instance.OnStateChanged += GameManager_OnStateChanged;
         UpdateVisual();
-        Show();
+        Show(); 
     }
 
     private void GameManager_OnStateChanged(object sender, System.EventArgs e) {
