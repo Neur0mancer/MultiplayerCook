@@ -1,11 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public class Player : MonoBehaviour, IKitchenObjectParent
+public class Player : NetworkBehaviour, IKitchenObjectParent
 {
-    public static Player Instance { get; protected set; }
+    //public static Player Instance { get; protected set; }
 
     public event EventHandler OnPickedSomething;
     public event EventHandler<OnSelectedCounterChangedEventArgs> OnSelectedCounterChanged;
@@ -22,15 +23,12 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     private BaseCounter selectedCounter;
     private KitchenObject kitchenObject;
 
-    private void Awake() {
-        if(Instance != null) {
-            Debug.LogError("More than one player instance!");
-        }
-        Instance = this;
+    private void Awake() {        
+        //Instance = this;
     }
     private void Start() {
-        gameInput.OnInteractAction += GameInput_OnInteractAction;
-        gameInput.OnInteractAlternateAction += GameInput_OnInteractAlternateAction;
+        GameInput.Instance.OnInteractAction += GameInput_OnInteractAction;
+        GameInput.Instance.OnInteractAlternateAction += GameInput_OnInteractAlternateAction;
     }
 
     private void GameInput_OnInteractAlternateAction(object sender, EventArgs e) {
@@ -49,6 +47,9 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     
 
     private void Update() {
+        if (!IsOwner) {
+            return;
+        }
         HandleMovement();
         HandleInteractions();
     }
@@ -56,7 +57,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
         return isWalking;
     }
     private void HandleMovement() {
-        Vector2 inputVector = gameInput.GetMovementVectorNormalized();
+        Vector2 inputVector = GameInput.Instance.GetMovementVectorNormalized();
         Vector3 moveDir = new Vector3(inputVector.x, 0f, inputVector.y);
         float moveDistance = moveSpeed * Time.deltaTime;
         float playerRadius = .7f;
@@ -95,7 +96,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     }
     private void HandleInteractions() {
         float interactDistance = 2f;
-        Vector2 inputVector = gameInput.GetMovementVectorNormalized();
+        Vector2 inputVector = GameInput.Instance.GetMovementVectorNormalized();
         Vector3 moveDir = new Vector3(inputVector.x, 0f, inputVector.y);
         if(moveDir != Vector3.zero) {
             lastInteractDir = moveDir; 
