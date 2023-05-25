@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class DeliveryManager : MonoBehaviour{
+public class DeliveryManager : NetworkBehaviour {
+
     public event EventHandler OnRecipeSpawned;
     public event EventHandler OnRecipeCompleted;
     public event EventHandler OnRecipeSuccess;
@@ -13,7 +15,7 @@ public class DeliveryManager : MonoBehaviour{
     [SerializeField] private RecipeListSO recipeListSO;
     
     private List<RecipeSO> waitingRecipeSOList;
-    private float spawnRecipeTimer;
+    private float spawnRecipeTimer = 4f;
     private float spawnRecipeTimerMax = 4f;
     private int waitingRecipesMax = 4;
     private int successfulRecipeAmount = 0;
@@ -23,16 +25,23 @@ public class DeliveryManager : MonoBehaviour{
         waitingRecipeSOList = new List<RecipeSO>();
     }
     private void Update() {
+        if (!IsServer) { return; }
         spawnRecipeTimer -= Time.deltaTime;
         if(spawnRecipeTimer < 0 ) {
             spawnRecipeTimer = spawnRecipeTimerMax;
 
             if (GameManager.Instance.IsGamePlaying() && waitingRecipeSOList.Count < waitingRecipesMax) {
-                RecipeSO waitingRecipeSO = recipeListSO.recipeSOList[UnityEngine.Random.Range(0, recipeListSO.recipeSOList.Count)];
-                waitingRecipeSOList.Add(waitingRecipeSO);
-                OnRecipeSpawned?.Invoke(this, EventArgs.Empty);                
+                int waitingRecipeSOIndex = UnityEngine.Random.Range(0, recipeListSO.recipeSOList.Count);
+                
+                SpawnNewWaitinRecipeClientRpc(waitingRecipeSOIndex);                           
             }
         }
+    }
+    [ClientRpc]
+    private void SpawnNewWaitinRecipeClientRpc(int waitingRecipeSOIndex) {
+        RecipeSO waitingRecipeSO = recipeListSO.recipeSOList[waitingRecipeSOIndex];
+        waitingRecipeSOList.Add(waitingRecipeSO);
+        OnRecipeSpawned?.Invoke(this, EventArgs.Empty);
     }
 
     public void DeliverRecipe(PlateKitchenObject plateKitchenObject) {
@@ -45,19 +54,13 @@ public class DeliveryManager : MonoBehaviour{
                 bool plateContentsMatchRecipe = DoPlateContetntsMatchRecipe(plateKitchenObject, waitingRecipeSO);
                 
                 if (plateContentsMatchRecipe) {
-                    //Correct recipe delivered
-                    successfulRecipeAmount++;
-                    waitingRecipeSOList.RemoveAt(i);
-                    OnRecipeCompleted?.Invoke(this, EventArgs.Empty);
-                    OnRecipeSuccess?.Invoke(this, EventArgs.Empty);
+                //Correct recipe delivered
+                DeliverCorrectRecipeServerRpc(i);
                     return;
-                }
-            
-            
+                }            
         }
         //No matches
-        OnRecipeFailed?.Invoke(this, EventArgs.Empty);
-        Debug.Log("Not correct recipe");
+        DeliverIncorrectRecipeServerRpc();
 
     }
     private bool DoPlateContetntsMatchRecipe(PlateKitchenObject plateKitchenObject, RecipeSO recipeSO) {
@@ -79,7 +82,26 @@ public class DeliveryManager : MonoBehaviour{
         }
         return false;
     }
+    [ServerRpc(RequireOwnership = false)]
+    private void DeliverIncorrectRecipeServerRpc() {
+        DeliverIncorrectRecipeClientRpc();
+    }
+    [ClientRpc]
+    private void DeliverIncorrectRecipeClientRpc() {
+        OnRecipeFailed?.Invoke(this, EventArgs.Empty);
+    }
 
+    [ServerRpc(RequireOwnership = false)]
+    private void DeliverCorrectRecipeServerRpc(int waitingRecipeSOListIndex) {
+        DeliverCorrectRecipeClientRpc(waitingRecipeSOListIndex);
+    }
+    [ClientRpc]
+    private void DeliverCorrectRecipeClientRpc(int waitingRecipeSOListIndex) {
+        successfulRecipeAmount++;
+        waitingRecipeSOList.RemoveAt(waitingRecipeSOListIndex);
+        OnRecipeCompleted?.Invoke(this, EventArgs.Empty);
+        OnRecipeSuccess?.Invoke(this, EventArgs.Empty);
+    }
     public List<RecipeSO> GetWaitingRecipeSOList() {
         return waitingRecipeSOList;
     }
