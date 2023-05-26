@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public class KitchenObject : MonoBehaviour
+public class KitchenObject : NetworkBehaviour
 {
     [SerializeField] private KitchenObjectSO kitchenObjectSO;
     private IKitchenObjectParent kitchenObjectParent;
@@ -18,8 +19,8 @@ public class KitchenObject : MonoBehaviour
             Debug.LogError("Parent object already has kitchen object");
         }
         kitchenObjectParent.SetKitchenObject(this);
-        transform.parent = kitchenObjectParent.GetKitchenObjectFollowTransform(); //Updating visual
-        transform.localPosition = Vector3.zero;
+        //transform.parent = kitchenObjectParent.GetKitchenObjectFollowTransform(); //Updating visual
+        //transform.localPosition = Vector3.zero;
     }
     public IKitchenObjectParent GetKitchenObjectParent() { 
         return kitchenObjectParent; 
@@ -28,11 +29,8 @@ public class KitchenObject : MonoBehaviour
         kitchenObjectParent.CLearKitchenObject();
         Destroy(gameObject);
     }
-    public static KitchenObject SpawnKinchenObject(KitchenObjectSO kitchenObjectSO, IKitchenObjectParent kitchenObjectParent) {
-        Transform kitchenObjectTransform = Instantiate(kitchenObjectSO.prefab);
-        KitchenObject kitchenObject = kitchenObjectTransform.GetComponent<KitchenObject>();
-        kitchenObject.SetKitchenObjectParent(kitchenObjectParent);
-        return kitchenObject;
+    public static void SpawnKinchenObject(KitchenObjectSO kitchenObjectSO, IKitchenObjectParent kitchenObjectParent) {
+        KitchenGameMultiplayer.Instance.SpawnKinchenObject(kitchenObjectSO, kitchenObjectParent);  //Spawn kitchen object on server
     }
     public bool TryGetPlate(out PlateKitchenObject plateKitchenObject) {
         if(this is PlateKitchenObject) {

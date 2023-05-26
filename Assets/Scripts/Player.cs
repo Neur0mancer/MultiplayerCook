@@ -6,9 +6,15 @@ using UnityEngine;
 
 public class Player : NetworkBehaviour, IKitchenObjectParent
 {
-    //public static Player Instance { get; protected set; }
+    public static Player LocalInstance { get; protected set; }
 
-    public event EventHandler OnPickedSomething;
+    public static EventHandler OnAnyPlayerSpawned;
+    public static EventHandler OnAnyPickedSomething;
+    public static void ResetStaticData() {
+        OnAnyPlayerSpawned = null;
+    }
+
+    public event EventHandler OnPickedSomething;    
     public event EventHandler<OnSelectedCounterChangedEventArgs> OnSelectedCounterChanged;
     public class OnSelectedCounterChangedEventArgs : EventArgs {
         public BaseCounter selectedCounter;
@@ -23,12 +29,16 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
     private BaseCounter selectedCounter;
     private KitchenObject kitchenObject;
 
-    private void Awake() {        
-        //Instance = this;
-    }
+  
     private void Start() {
         GameInput.Instance.OnInteractAction += GameInput_OnInteractAction;
         GameInput.Instance.OnInteractAlternateAction += GameInput_OnInteractAlternateAction;
+    }
+    public override void OnNetworkSpawn() {
+        if (IsOwner) {
+            LocalInstance = this;
+        }
+        OnAnyPlayerSpawned?.Invoke(this, EventArgs.Empty);
     }
 
     private void GameInput_OnInteractAlternateAction(object sender, EventArgs e) {
@@ -125,6 +135,7 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
         this.kitchenObject = kitchenObject;
         if(kitchenObject != null) {
             OnPickedSomething?.Invoke(this, EventArgs.Empty);
+            OnAnyPickedSomething?.Invoke(this, EventArgs.Empty);
         }
     }
     public KitchenObject GetKitchenObject() {
@@ -135,5 +146,8 @@ public class Player : NetworkBehaviour, IKitchenObjectParent
     }
     public bool HasKitchenObject() {
         return kitchenObject != null;
+    }
+    public NetworkObject GetNetworkObject() {
+        return NetworkObject;
     }
 }
