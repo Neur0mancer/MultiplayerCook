@@ -6,12 +6,33 @@ using UnityEngine;
 public class KitchenObject : NetworkBehaviour
 {
     [SerializeField] private KitchenObjectSO kitchenObjectSO;
+
     private IKitchenObjectParent kitchenObjectParent;
+    private FollowTransform followTransform;
+
+    protected virtual void Awake() {
+        followTransform =  GetComponent<FollowTransform>();
+    }
     public KitchenObjectSO GetKitchenObjectsSO() { 
         return kitchenObjectSO; 
     }
     public void SetKitchenObjectParent(IKitchenObjectParent kitchenObjectParent) { //Moving objects between counters
-        if( this.kitchenObjectParent != null) {                    //Clear old counter
+        SetKitchenObjectParentServerRpc(kitchenObjectParent.GetNetworkObject());
+
+
+    }
+    [ServerRpc(RequireOwnership = false)]
+
+    private void SetKitchenObjectParentServerRpc(NetworkObjectReference kitchenObjectParentNetworkObjectReference) {
+        SetKitchenObjectParentClientRpc(kitchenObjectParentNetworkObjectReference);
+    }
+
+    [ClientRpc]
+    private void SetKitchenObjectParentClientRpc(NetworkObjectReference kitchenObjectParentNetworkObjectReference) {
+        kitchenObjectParentNetworkObjectReference.TryGet(out NetworkObject kitchenObjectParentNetworkObject); //Geting parent object from network object
+        IKitchenObjectParent kitchenObjectParent = kitchenObjectParentNetworkObject.GetComponent<IKitchenObjectParent>();
+
+        if (this.kitchenObjectParent != null) {                    //Clear old counter
             this.kitchenObjectParent.CLearKitchenObject();
         }
         this.kitchenObjectParent = kitchenObjectParent;                   //Assign to new counter
@@ -19,8 +40,8 @@ public class KitchenObject : NetworkBehaviour
             Debug.LogError("Parent object already has kitchen object");
         }
         kitchenObjectParent.SetKitchenObject(this);
-        //transform.parent = kitchenObjectParent.GetKitchenObjectFollowTransform(); //Updating visual
-        //transform.localPosition = Vector3.zero;
+
+        followTransform.SetTargetTransform(kitchenObjectParent.GetKitchenObjectFollowTransform());  //Updating visual
     }
     public IKitchenObjectParent GetKitchenObjectParent() { 
         return kitchenObjectParent; 
