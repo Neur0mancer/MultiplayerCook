@@ -65,7 +65,7 @@ public class OptionsUI : MonoBehaviour {
         gamepadPauseButton.onClick.AddListener(() => { RebindBinding(GameInput.Binding.Gamepad_Pause); });
     }
     private void Start() {
-        GameManager.Instance.OnGameUnpaused += GameManager_OnGameUnpaused;
+        GameManager.Instance.OnLocalGameUnpaused += GameManager_OnGameUnpaused;
         HidePressToRebindKey();
         UpdateVisual();
         Hide();
