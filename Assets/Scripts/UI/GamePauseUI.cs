@@ -1,10 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class GamePauseUI : MonoBehaviour
-{
+public class GamePauseUI : MonoBehaviour {
     [SerializeField] private Button resumeButton;
     [SerializeField] private Button mainMenuButton;
     [SerializeField] private Button optionsButton;
@@ -14,6 +14,7 @@ public class GamePauseUI : MonoBehaviour
             GameManager.Instance.TogglePauseGame();
         });
         mainMenuButton.onClick.AddListener(() => {
+            NetworkManager.Singleton.Shutdown();     //Shutting down connection before exiting to main menu
             Loader.Load(Loader.Scene.MainMenuScene);
         });
         optionsButton.onClick.AddListener(() => {

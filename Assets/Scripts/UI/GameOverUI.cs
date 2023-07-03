@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,7 +12,8 @@ public class GameOverUI : MonoBehaviour
 
     private void Awake() {
         replayButton.onClick.AddListener(() => {
-            Loader.Load(Loader.Scene.GameScene);
+            NetworkManager.Singleton.Shutdown();     //Shutting down connection before exiting to main menu
+            Loader.Load(Loader.Scene.MainMenuScene);
         });
     }
     private void Start() {
