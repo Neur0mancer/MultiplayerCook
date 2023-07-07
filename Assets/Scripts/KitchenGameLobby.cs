@@ -11,10 +11,14 @@ public class KitchenGameLobby : MonoBehaviour {
     public static KitchenGameLobby Instance { get; private set; }
 
     private Lobby joinedLobby;
+    private float heartbeatTimer;
     private void Awake() {
         Instance = this;
         DontDestroyOnLoad(gameObject);
         InitializeUnityAuthentication();
+    }
+    private void Update() {
+        HandleHeartbeat();
     }
 
     private async void InitializeUnityAuthentication() {
@@ -44,5 +48,30 @@ public class KitchenGameLobby : MonoBehaviour {
         } catch (LobbyServiceException e) {
             Debug.Log(e);
         }
+    }
+    public Lobby GetLobby() {
+        return joinedLobby;
+    }
+
+public async void JoinWithCode(string lobbyCode) {
+        try {
+            joinedLobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode);
+            KitchenGameMultiplayer.Instance.StartClient();
+        } catch(LobbyServiceException e) {
+            Debug.Log(e);
+        }
+    }
+    private void HandleHeartbeat() {
+        if (IsLobbyHost()) {
+            heartbeatTimer -= Time.deltaTime;
+            if(heartbeatTimer < 0) {
+                float heartbeatTimerMax = 15f;
+                heartbeatTimer = heartbeatTimerMax;
+                LobbyService.Instance.SendHeartbeatPingAsync(joinedLobby.Id);
+            }
+        }
+    }
+    private bool IsLobbyHost() {
+        return joinedLobby != null && joinedLobby.HostId == AuthenticationService.Instance.PlayerId;
     }
 }
