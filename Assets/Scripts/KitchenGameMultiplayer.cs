@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using Unity.Netcode;
+using Unity.Services.Authentication;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -74,13 +75,14 @@ public class KitchenGameMultiplayer : NetworkBehaviour
 
     public void StartClient() {
         OnTyingToJoinGame?.Invoke(this, EventArgs.Empty);
-        NetworkManager.Singleton.OnClientConnectedCallback += NetworkManager_Server_OnClientConnectedCallback;
+        NetworkManager.Singleton.OnClientConnectedCallback += NetworkManager_Client_OnClientConnectedCallback;
         NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManager_Client_OnClientDisconnectCallback;
         NetworkManager.Singleton.StartClient();
     }
 
-    private void NetworkManager_Server_OnClientConnectedCallback(ulong clientId) {
+    private void NetworkManager_Client_OnClientConnectedCallback(ulong clientId) {
         SetPlayerNameServerRpc(GetPlayerName());
+        SetPlayerIdServerRpc(AuthenticationService.Instance.PlayerId);
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -88,6 +90,14 @@ public class KitchenGameMultiplayer : NetworkBehaviour
         int playerDataIndex = GetPlayerDataIndexFromClientId(serverRpcParams.Receive.SenderClientId);
         PlayerData playerData = playerDataNetworkList[playerDataIndex];
         playerData.playerName = playerName;
+        playerDataNetworkList[playerDataIndex] = playerData;
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void SetPlayerIdServerRpc(string playerId, ServerRpcParams serverRpcParams = default) {
+        int playerDataIndex = GetPlayerDataIndexFromClientId(serverRpcParams.Receive.SenderClientId);
+        PlayerData playerData = playerDataNetworkList[playerDataIndex];
+        playerData.playerId = playerId;
         playerDataNetworkList[playerDataIndex] = playerData;
     }
     private void NetworkManager_Client_OnClientDisconnectCallback(ulong clientId) {
