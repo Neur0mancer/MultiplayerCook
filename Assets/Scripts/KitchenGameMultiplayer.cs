@@ -12,6 +12,7 @@ public class KitchenGameMultiplayer : NetworkBehaviour
     public const int MAX_PLAYER_AMOUNT = 4;
     private const string PLAYER_PREFS_PLAYER_NAME = "PlayerName";
     public static KitchenGameMultiplayer Instance { get; private set; }
+    public static bool playMultiplayer;
 
     public event EventHandler OnTyingToJoinGame;
     public event EventHandler OnFailedToJoinGame;
@@ -25,9 +26,16 @@ public class KitchenGameMultiplayer : NetworkBehaviour
     private void Awake() {
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
         playerName = PlayerPrefs.GetString(PLAYER_PREFS_PLAYER_NAME, "PlayerName" + UnityEngine.Random.Range(10, 100));
         playerDataNetworkList = new NetworkList<PlayerData>();
         playerDataNetworkList.OnListChanged += PlayerDataNetworkList_OnListChanged;
+    }
+    private void Start() {
+        if(!playMultiplayer) {
+            StartHost();
+            Loader.LoadNetwork(Loader.Scene.GameScene); 
+        }
     }
 
     private void PlayerDataNetworkList_OnListChanged(NetworkListEvent<PlayerData> changeEvent) {
@@ -57,6 +65,7 @@ public class KitchenGameMultiplayer : NetworkBehaviour
             colorId = GetFirstUnusedColorId(),
         });
         SetPlayerNameServerRpc(GetPlayerName());
+        SetPlayerIdServerRpc(AuthenticationService.Instance.PlayerId);
     }
 
     private void NetworkManager_ConnectionApprovalCallback(NetworkManager.ConnectionApprovalRequest connectionApprovalRequest, NetworkManager.ConnectionApprovalResponse connectionApprovalResponse) {

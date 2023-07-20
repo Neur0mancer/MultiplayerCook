@@ -46,7 +46,7 @@ public class KitchenGameLobby : MonoBehaviour {
     private async void InitializeUnityAuthentication() {
         if (UnityServices.State != ServicesInitializationState.Initialized) {
             InitializationOptions initializationOptions = new InitializationOptions();
-            initializationOptions.SetProfile(UnityEngine.Random.Range(0, 1000).ToString());  //To allow play from multiple clients from 1 PC
+            //initializationOptions.SetProfile(UnityEngine.Random.Range(0, 1000).ToString());  //To allow play from multiple clients from 1 PC
             await UnityServices.InitializeAsync(initializationOptions);
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
         }
@@ -69,6 +69,7 @@ public class KitchenGameLobby : MonoBehaviour {
             return default;
         }
     }
+
     private async Task<JoinAllocation> JoinRelay(string joinCode) {
         try {
             JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
@@ -88,7 +89,7 @@ public class KitchenGameLobby : MonoBehaviour {
             string relayJoinCode = await GetRelayJoinCode(allocation);
             await LobbyService.Instance.UpdateLobbyAsync(joinedLobby.Id, new UpdateLobbyOptions {
                 Data = new Dictionary<string, DataObject> {
-                    {KEY_RELAY_JOIN_CODE, new DataObject(DataObject.VisibilityOptions.Member, relayJoinCode) }
+                    { KEY_RELAY_JOIN_CODE, new DataObject(DataObject.VisibilityOptions.Member, relayJoinCode) }
                 }
             });
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(new RelayServerData(allocation, "dtls"));
@@ -193,6 +194,7 @@ public class KitchenGameLobby : MonoBehaviour {
     }
     private void HandlePeriodicListLobbies() {
         if (joinedLobby == null && 
+            UnityServices.State == ServicesInitializationState.Initialized &&
             AuthenticationService.Instance.IsSignedIn && 
             SceneManager.GetActiveScene().name == Loader.Scene.LobbyScene.ToString() ) {   //Don't look for lobbies if already joined one, not on lobby scene and only after login
             listLobbiesTimer -= Time.deltaTime;
