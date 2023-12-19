@@ -5,3 +5,4 @@ Implemented:
 -Reconnect and multiplayer synchronization  
 -Scriptable objects  
 -Async actions  
+-Input rebinding
